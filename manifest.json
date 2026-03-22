@@ -1,12 +1,10 @@
 {
-    "display_name": "Pregnancy Tracker",
-    "loading_order": 5,
-    "requires": [],
-    "optional": [],
-    "js": "index.js",
-    "css": "",
+    "display_name": "🌸 Трекер беременности",
+    "name": "pregnancy-tracker",
     "author": "Дианка",
     "version": "2.0.0",
-    "homePage": "",
-    "auto_update": false
+    "js": "index.js",
+    "module": true,
+    "loading_order": 5
 }
+
