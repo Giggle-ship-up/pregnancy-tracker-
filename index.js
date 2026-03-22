@@ -579,23 +579,53 @@ function bindEvents() {
 }
 
 jQuery(async () => {
+    // 1. Добавляем твои красивые стили в голову документа
     $('head').append(`<style>${STYLES}</style>`);
-    const $wrap = $('<div id="pregnancy-tracker-content" class="extension_container"></div>');
+
+    // 2. Создаем контейнер и сразу наполняем его HTML-версткой
+    const $wrap = $('<div id="pregnancy-tracker-container" class="extension_container"></div>');
     $wrap.html(buildHTML());
+
+    // 3. Пытаемся интегрироваться в меню SillyTavern
     if (typeof addExtensionPanel === 'function') {
-        addExtensionPanel(EXT_NAME, EXT_DISPLAY, 'pt-panel');
+        // Передаем EXT_NAME, заголовок и САМ объект $wrap (это надежнее, чем просто ID)
+        addExtensionPanel(EXT_NAME, EXT_DISPLAY, $wrap);
     } else {
-        const $block = $(`<div class="extension_block"><div class="extension_header" style="position:relative;"><b>🌸 Трекер беременности</b><div id="pt-danger-badge">0</div></div></div>`);
+        // Если основная функция недоступна, создаем блок вручную (запасной путь)
+        const $block = $(`
+            <div class="extension_block">
+                <div class="extension_header" style="position:relative;">
+                    <b>🌸 Трекер беременности</b>
+                    <div id="pt-danger-badge">0</div>
+                </div>
+            </div>
+        `);
         $block.append($wrap);
         $('#extensions_settings').append($block);
-        _badgeEl = document.getElementById('pt-danger-badge');
     }
-    renderAll(); bindEvents(); checkFertileWindow();
-    document.addEventListener('characterSelected', () => { renderAll(); checkFertileWindow(); });
+
+    // 4. Находим бейдж для уведомлений об угрозах
+    _badgeEl = document.getElementById('pt-danger-badge');
+
+    // 5. Запускаем рендер данных и привязку кнопок
+    renderAll(); 
+    bindEvents(); 
+    checkFertileWindow();
+
+    // 6. Следим за переключением персонажей, чтобы обновлять данные
+    document.addEventListener('characterSelected', () => { 
+        renderAll(); 
+        checkFertileWindow(); 
+    });
+
+    // 7. Самая важная часть — передача данных в нейронку перед отправкой сообщения
     document.addEventListener('generate_before_send', (e) => {
         const injection = buildPromptInjection();
-        if (!injection) return;
-        if (e.detail?.chat) e.detail.chat.unshift({ role: 'system', content: injection });
+        if (injection && e.detail?.chat) {
+            // Добавляем инфо о состоянии персонажа в самое начало контекста
+            e.detail.chat.unshift({ role: 'system', content: injection });
+        }
     });
-    console.log(`[${EXT_NAME}] v2 загружен`);
+
+    console.log(`[${EXT_NAME}] v2 успешно загружен и готов к работе! ✨`);
 });
